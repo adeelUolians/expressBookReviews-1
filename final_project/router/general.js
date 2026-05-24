@@ -3,7 +3,37 @@ let books = require("./booksdb.js");
 let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
+const express = require('express');
+const axios = require('axios'); // Ensure axios is required at the top of your file
+const public_users = express.Router();
 
+// Get book details based on author using Async/Await with Axios
+public_users.get('/author/:author', async function (req, res) {
+  const author = req.params.author;
+
+  try {
+    // Making an asynchronous local request to fetch the complete list of books
+    const response = await axios.get('http://localhost:5000/');
+    const books = response.data;
+    
+    // Filtering the books matching the requested author
+    const filteredBooks = {};
+    Object.keys(books).forEach((key) => {
+      if (books[key].author.toLowerCase() === author.toLowerCase()) {
+        filteredBooks[key] = books[key];
+      }
+    });
+
+    if (Object.keys(filteredBooks).length > 0) {
+      return res.status(200).json(filteredBooks);
+    } else {
+      return res.status(404).json({ message: "No books found for this author" });
+    }
+
+  } catch (error) {
+    return res.status(500).json({ message: "Error retrieving book details", error: error.message });
+  }
+});
 // Task 6: Register a new user
 public_users.post("/register", (req, res) => {
   const username = req.body.username;
